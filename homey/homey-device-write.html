@@ -1,0 +1,72 @@
+<script type="text/javascript">
+  RED.nodes.registerType('homey-device-write', {
+    category: 'output',
+    color: '#E9967A',
+    defaults: {
+      name: { value: "" },
+      homey: {value:"", type:"homey-config"},
+      device: { value: "", required: true},
+      deviceType: { value: "str"},
+      capability: { value: "", required: true},
+      capabilityType: { value: "str"},
+      value: { value: "", required: true},
+      valueType: { value: "bool"}
+    },
+    inputs: 1,
+    outputs: 0,
+    icon: "file.svg",
+    align: "right",
+    label: function () {
+      return this.name || "homey-device-write";
+    },
+    oneditprepare: function () {
+      $("#node-input-device").typedInput({
+        typeField: "#node-input-deviceType",
+        types: [ "str", "msg"],
+        default: "str"
+      });
+
+      $("#node-input-capability").typedInput({
+        typeField: "#node-input-capabilityType",
+        types: [ "str", "msg"],
+        default: "str"
+      });
+
+      $("#node-input-value").typedInput({
+        typeField: "#node-input-valueType",
+        types: [ "bool", "num", "str", "msg"],
+        default: "str"
+      });
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="homey-device-write">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-homey"><i class="fa fa-random"></i> Homey</label>
+        <input type="text" id="node-input-homey" >
+    </div>
+    <div class="form-row">
+      <label for="node-input-device">Device Name</label>
+      <input id="node-input-device" type="text">
+      <input id="node-input-deviceType" type="hidden">
+    </div>
+    <div class="form-row">
+      <label for="node-input-capability">Capability</label>
+      <input id="node-input-capability" type="text">
+      <input id="node-input-capabilityType" type="hidden">
+    </div>
+    <div class="form-row">
+      <label for="node-input-value">Set Value</label>
+      <input id="node-input-value" type="text">
+      <input id="node-input-valueType" type="hidden">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="homey-device-write">
+    <p>Set A device Capability Value</p>
+</script>

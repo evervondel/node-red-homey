@@ -1,0 +1,32 @@
+{
+  "name": "@evervondel/node-red-homey",
+  "description": "Node-Red nodes for Homey Smart Home Platform interaction using Homey Web API",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": "Erwin Vervondel <erwin.vervondel@gmail.com>",
+  "repository": {
+	  "type": "git",
+	  "url": "https://github.com/evervondel/node-red-homey"
+  },
+  "keywords": [
+	"node-red",
+	"component",
+	"homey",
+	"home automation",
+	"api"
+  ],
+  "node-red": {
+    "version": ">=2.0.0",
+	"nodes": {
+	  "homey-config": "homey/homey-config.js",
+    "homey-device-write": "homey/homey-device-write.js"
+	}
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {
+    "athom-api": "^3.9.2",
+    "node-fetch": "^2.7.0"
+  }
+}

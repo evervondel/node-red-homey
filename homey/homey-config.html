@@ -1,0 +1,46 @@
+<script type="text/javascript">
+  RED.nodes.registerType('homey-config',{
+      category: 'config',
+      credentials: {
+        username: {type:"text"},
+        password: {type:"password"},
+      },
+      defaults: {
+          name: { value: "" },
+          homeyid: {value:""},
+      },
+      label: function() { return this.name; },
+    });
+  </script>
+  
+  <script type="text/html" data-template-name="homey-config">
+      <div class="form-row">
+          <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+          <input type="text" id="node-config-input-name" placeholder="Name">
+      </div>
+      <div class="form-row">
+        <label for="node-config-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-config-input-username">
+      </div>
+      <div class="form-row">
+        <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="password" id="node-config-input-password">
+      </div>
+      <div class="form-row">
+        <label for="node-config-input-homeyid"><i class="fa fa-plug"></i> Elastic URL</label>
+        <input type="text" id="node-config-input-homeyid">
+      </div>
+    </div>
+  </script>
+  
+  <script type="text/x-red" data-help-name="homey-config">
+      <p>Homey Web API Connection Configuration to connect to your Homey Device</p>
+      <ul>
+        <li>Username: your username (email)</li>
+        <li>Password: your password</li>
+        <li>Homey ID: your Homey ID to connect to
+          <p>Leave blank to connect to your first Homey Device</p>
+          <p>Your Homey ID can be found in the Homey App under More -> Settings -> General ->Homey ID</p>
+        </li>
+      </ul>
+  </script>
