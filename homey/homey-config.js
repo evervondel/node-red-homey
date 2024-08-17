@@ -3,12 +3,19 @@ module.exports = function (RED) {
     const {AthomCloudAPI} = require('athom-api');
     const fetch = require("node-fetch");
 
+    //Create a new AthomCloudAPI instance
+    // Obtained through the developer portal/Athom
+    const cloudAPI = new AthomCloudAPI({
+      clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
+      clientSecret: 'e3ace394af9f615857ceaa61b053f966ddcfb12a',
+      redirectUrl: 'http://localhost'
+    });
+
     function HomeyConfigNode(config) {
       RED.nodes.createNode(this, config);
       this.homeyAPI = null;
 
-      // Obtained through the developer portal/Athom
-      var config = {
+      var homeyConfig = {
         email: this.credentials.username,
         password: this.credentials.password,
         clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
@@ -16,22 +23,7 @@ module.exports = function (RED) {
         redirectUrl: 'http://localhost',
         homeyCloudId: config.homeyid
       }
-
-      //Create a new AthomCloudAPI instance
-      var cloudAPI = new AthomCloudAPI({
-        clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
-        clientSecret: 'e3ace394af9f615857ceaa61b053f966ddcfb12a',
-        redirectUrl: 'http://localhost'
-      });
-
-      login(cloudAPI, config).
-        then(data => {
-          this.homeyAPI = data;
-          console.log("logged in");
-          })
-          .catch(err => {
-            console.log(err.message)
-          })
+      this.homeyConfig = homeyConfig;
     }  
 
     async function getAuthorizationCode(config) {
@@ -100,42 +92,38 @@ module.exports = function (RED) {
       return code;
   }    
 
-//This function attempts to log-in to a specific homey and returns a HomeyAPI
-async function login(cloudAPI, config) {
-  //Check if we are logged in
-  console.log('start login');
-  if(!await cloudAPI.isLoggedIn()) {
+  //This function attempts to log-in to a specific homey and returns a HomeyAPI
+  async function login(homeyConfig) {
+    if(!await cloudAPI.isLoggedIn()) {
 
-      //If we are not logged in but do have an OAuth2 authorization code 
-      // parameter in our URL, use it to authenticate
-      if(cloudAPI.hasAuthorizationCode()) {
-          await cloudAPI.authenticateWithAuthorizationCode();
-      } else {
-          //Redirect the user to the OAuth2 login page
-          var code = await getAuthorizationCode(config);
-          await cloudAPI.authenticateWithAuthorizationCode(code);
-      }
+        //If we are not logged in but do have an OAuth2 authorization code 
+        // parameter in our URL, use it to authenticate
+        if(cloudAPI.hasAuthorizationCode()) {
+            await cloudAPI.authenticateWithAuthorizationCode();
+        } else {
+            //Redirect the user to the OAuth2 login page
+            var code = await getAuthorizationCode(homeyConfig);
+            await cloudAPI.authenticateWithAuthorizationCode(code);
+        }
+    }
+
+    const user = await cloudAPI.getAuthenticatedUser();
+    console.info('User', user.fullname, 'Authenticated');
+
+    // Get the homey instance
+    var homey;
+    if (homeyConfig.homeyCloudId) {
+      homey = user.getHomeyById(homeyConfig.homeyCloudId);
+    }
+    else {
+      homey = user.getFirstHomey();
+    }
+
+    // Start a session on this Homey
+    console.info('Logging in to:', homey.name);
+    var homeyAPI = await homey.authenticate();
+    return homeyAPI;
   }
-
-  const user = await cloudAPI.getAuthenticatedUser();
-  console.info('User', user.fullname, 'Authenticated');
-
-  // Get the homey instance
-  var homey;
-  if (config.homeyCloudId) {
-    homey = user.getHomeyById(config.homeyCloudId);
-  }
-  else {
-    homey = user.getFirstHomey();
-  }
-
-  // Start a session on this Homey
-  console.info('Logging in to:', homey.name);
-  var homeyAPI = await homey.authenticate();
-
-  console.info('homeyAPI created');
-  return homeyAPI;
-}
 
 
   RED.nodes.registerType("homey-config", HomeyConfigNode,
@@ -146,27 +134,49 @@ async function login(cloudAPI, config) {
     }
   });
 
-  async function getDeviceByName(deviceName) {
-    let devices = await this.homeyAPI.devices.getDevices();
-    return Object.values(devices).find(device => device.name === deviceName);
-  }
-  
+
   HomeyConfigNode.prototype.writeDevice = async function writeDevice(node, deviceName, capabilityName, value)
   {
+    if (!this.homeyAPI) {
+      this.homeyAPI = await login(this.homeyConfig);
+    }
+
     let devices = await this.homeyAPI.devices.getDevices();
     let device = Object.values(devices).find(device => device.name === deviceName);
     if (!device) {
-      console.log('device [' + deviceName + '] not found');
+      node.status({fill:"red",shape:"ring",text: deviceName + " not found"});
+      node.warn('device [' + deviceName + '] not found');  
       return
     }
   
     device.setCapabilityValue(capabilityName, value).
         then(data => {
-        console.log(capabilityName + ' set to ' + value);
+          node.status({fill:"green",shape:"ring",text: deviceName + '.' + capabilityName + ' = ' + value});
+          node.debug(deviceName + '.' + capabilityName + ' = ' + value);
         })
         .catch(err => {
-          console.log(err.message)
+          node.status({fill:"red",shape:"ring",text: capabilityName + ' not set'});
+          node.warn(err.message);  
         })
   }
-    
+
+  HomeyConfigNode.prototype.close = async function close(node)
+  {
+    if (this.homeyAPI) {
+      console.log('closing homeyAPI');
+/*
+      cloudAPI.logout().then(() => {
+        console.log('logged out');
+        this.homeyAPI = null;
+      })
+      .catch(err => {
+        console.log('logout error', err);
+        this.homeyAPI = null;
+      });
+*/
+    node.status({});
+    this.homeyAPI = null;
+    }
+  }
+
 };

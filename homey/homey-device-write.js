@@ -15,8 +15,7 @@ module.exports = function (RED) {
       var valueType = config.valueType;
 
       this.on('input', function(msg, send, done) {
-        if (node.homey)
-        {
+        if (node.homey) {
           var deviceName;
           if (deviceType === "str") {
             // fixed
@@ -45,12 +44,20 @@ module.exports = function (RED) {
           }
 
           console.log('writing to device [' + deviceName + '] capability [' + capabilityName + '] value [' + valueValue + ']');
-
           node.homey.writeDevice(node, deviceName, capabilityName, valueValue);
         }
 
         if (done) done();
       });
+
+      // When the node is re-deployed
+      this.on('close', function (removed, done) {
+        if (node.homey) {
+          node.homey.close(node)
+        }
+        done && done()
+      });
+      
     }
 
     RED.nodes.registerType("homey-device-write", HomeyDeviceWriteNode);
