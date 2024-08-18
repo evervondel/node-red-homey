@@ -134,6 +134,22 @@ module.exports = function (RED) {
     }
   });
 
+  HomeyConfigNode.prototype.getDevice = async function getDevice(node, deviceName)
+  {
+    if (!this.homeyAPI) {
+      this.homeyAPI = await login(this.homeyConfig);
+    }
+
+    let devices = await this.homeyAPI.devices.getDevices();
+    let device = Object.values(devices).find(device => device.name === deviceName);
+    if (!device) {
+      node.status({fill:"red",shape:"ring",text: deviceName + " not found"});
+      node.warn('device [' + deviceName + '] not found');  
+      return null;
+    }
+
+    return device
+  }
 
   HomeyConfigNode.prototype.writeDevice = async function writeDevice(node, deviceName, capabilityName, value)
   {
@@ -155,10 +171,44 @@ module.exports = function (RED) {
           node.debug(deviceName + '.' + capabilityName + ' = ' + value);
         })
         .catch(err => {
-          node.status({fill:"red",shape:"ring",text: capabilityName + ' not set'});
+          node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + ' not set'});
           node.warn(err.message);  
         })
   }
+
+  HomeyConfigNode.prototype.readDevice = async function readDevice(node, deviceName, capabilityName)
+  {
+    if (!this.homeyAPI) {
+      this.homeyAPI = await login(this.homeyConfig);
+    }
+
+    let devices = await this.homeyAPI.devices.getDevices();
+    let device = Object.values(devices).find(device => device.name === deviceName);
+    if (!device) {
+      node.status({fill:"red",shape:"ring",text: deviceName + " not found"});
+      node.warn('device [' + deviceName + '] not found');  
+      return null;
+    }
+  
+    let capability = device.capabilitiesObj[capabilityName];
+    if (!capability) {
+      node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + " not found"});
+      node.warn('device [' + deviceName + '] capability [' + capabilityName + '] not found');  
+      return null;
+    }
+
+    let payload = {
+      device: device.name,
+      id: capability.id,
+      title: capability.title,
+      desc: capability.desc,
+      value: capability.value,
+      units: capability.units,
+      lastUpdated: capability.lastUpdated
+    }
+    return payload
+  }
+
 
   HomeyConfigNode.prototype.close = async function close(node)
   {

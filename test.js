@@ -9,12 +9,12 @@ process.on('unhandledRejection', error => {
 
 // Obtained through the developer portal/Athom
 var config = {
-  email: 'erwin.vervondel@gmail.com',
-  password: 'Homey1891',
+  email: 'email',
+  password: 'pass',
   clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
   clientSecret: 'e3ace394af9f615857ceaa61b053f966ddcfb12a',
   redirectUrl: 'http://localhost',
-  homeyCloudId: '5ffd76cff8aa120b90b32787'
+  homeyCloudId: null
 }
 
 //Create a new AthomCloudAPI instance

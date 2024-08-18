@@ -1,7 +1,7 @@
 module.exports = function (RED) {
     "use strict";
   
-    function HomeyDeviceWriteNode(config) {
+    function HomeyDeviceReadNode(config) {
       RED.nodes.createNode(this, config);
       const node = this;
 
@@ -11,8 +11,6 @@ module.exports = function (RED) {
       var deviceType = config.deviceType;
       var capability = config.capability;
       var capabilityType = config.capabilityType;
-      var value = config.value;
-      var valueType = config.valueType;
 
       this.on('input', function(msg, send, done) {
         if (node.homey) {
@@ -34,20 +32,22 @@ module.exports = function (RED) {
             capabilityName = RED.util.getMessageProperty(msg, capability);
           }
 
-          var valueValue;
-          if (valueType != "msg") {
-            // fixed
-            valueValue = RED.util.evaluateNodeProperty(value, valueType, node)
-          } else {
-            // get valueValue from message
-            valueValue = RED.util.getMessageProperty(msg, value);
-          }
-
-          console.log('writing to device [' + deviceName + '] capability [' + capabilityName + '] value [' + valueValue + ']');
-          node.homey.writeDevice(node, deviceName, capabilityName, valueValue);
+          console.log('read from device [' + deviceName + '] capability [' + capabilityName + ']');
+          node.homey.readDevice(node, deviceName, capabilityName).
+          then(data => {
+            if (data) {
+              msg.payload = data;
+              send(msg);
+            }
+            if (done) done();
+          })
+          .catch(err => {
+            node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + ' not read'});
+            node.warn(err.message);  
+            if (done) done();
+          })
         }
 
-        if (done) done();
       });
 
       // When the node is re-deployed
@@ -60,6 +60,6 @@ module.exports = function (RED) {
       
     }
 
-    RED.nodes.registerType("homey-device-write", HomeyDeviceWriteNode);
+    RED.nodes.registerType("homey-device-read", HomeyDeviceReadNode);
     
   };

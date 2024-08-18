@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('homey-device-write', {
+  RED.nodes.registerType('homey-device-read', {
     category: 'Homey',
     color: '#FFCC66',
     defaults: {
@@ -9,15 +9,13 @@
       deviceType: { value: "str"},
       capability: { value: "", required: true},
       capabilityType: { value: "str"},
-      value: { value: "", required: true},
-      valueType: { value: "bool"}
     },
     inputs: 1,
-    outputs: 0,
+    outputs: 1,
     icon: "bridge.svg",
-    align: "right",
+    align: "left",
     label: function () {
-      return this.name || "homey-device-write";
+      return this.name || "homey-device-read";
     },
     oneditprepare: function () {
       $("#node-input-device").typedInput({
@@ -31,17 +29,11 @@
         types: [ "str", "msg"],
         default: "str"
       });
-
-      $("#node-input-value").typedInput({
-        typeField: "#node-input-valueType",
-        types: [ "bool", "num", "str", "msg"],
-        default: "str"
-      });
     }
   });
 </script>
 
-<script type="text/x-red" data-template-name="homey-device-write">
+<script type="text/x-red" data-template-name="homey-device-read">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -60,13 +52,8 @@
       <input id="node-input-capability" type="text">
       <input id="node-input-capabilityType" type="hidden">
     </div>
-    <div class="form-row">
-      <label for="node-input-value">Set Value</label>
-      <input id="node-input-value" type="text">
-      <input id="node-input-valueType" type="hidden">
-    </div>
 </script>
 
-<script type="text/x-red" data-help-name="homey-device-write">
-    <p>Write a device Capability Value</p>
+<script type="text/x-red" data-help-name="homey-device-read">
+    <p>Read a device Capability Value</p>
 </script>
