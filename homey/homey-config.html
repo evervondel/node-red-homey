@@ -27,7 +27,7 @@
         <input type="password" id="node-config-input-password">
       </div>
       <div class="form-row">
-        <label for="node-config-input-homeyid"><i class="fa fa-plug"></i> Homey Cloud Id</label>
+        <label for="node-config-input-homeyid"><i class="fa fa-plug"></i> Homey Id</label>
         <input type="text" id="node-config-input-homeyid">
       </div>
     </div>
@@ -35,12 +35,25 @@
   
   <script type="text/x-red" data-help-name="homey-config">
       <p>Homey Web API Connection Configuration to connect to your Homey Device</p>
-      <ul>
-        <li>Username: your username (email)</li>
-        <li>Password: your password</li>
-        <li>Homey ID: your Homey ID to connect to
-          <p>Leave blank to connect to your first Homey Device</p>
-          <p>Your Homey ID can be found in the Homey App under More -> Settings -> General ->Homey ID</p>
-        </li>
-      </ul>
+      <h3>Properties</h3>
+      <dl class="message-properties">
+        <dt>Username
+          <span class="property-type">string</span>
+        </dt>
+        <dd>your Homey username (email).
+        </dd>
+        <dt>Password
+          <span class="property-type">string</span>
+        </dt>
+        <dd>your Homey username (email).
+        </dd>
+        <dt>Homey ID
+          <span class="property-type">string</span>
+        </dt>
+        <dd>Your Homey Cloud ID to connect to.
+         <br />Leave blank to connect to your 'first' Homey Device.
+         <br />Your Homey ID can be found in the Homey App under More | Settings | General | Homey ID
+        </dd>
+      </dl>
+  
   </script>
