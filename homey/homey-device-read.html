@@ -43,17 +43,59 @@
         <input type="text" id="node-input-homey" >
     </div>
     <div class="form-row">
-      <label for="node-input-device">Device Name</label>
+      <label for="node-input-device"> Device</label>
       <input id="node-input-device" type="text">
       <input id="node-input-deviceType" type="hidden">
     </div>
     <div class="form-row">
-      <label for="node-input-capability">Capability</label>
+      <label for="node-input-capability"> Capability</label>
       <input id="node-input-capability" type="text">
       <input id="node-input-capabilityType" type="hidden">
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="homey-device-read">
-    <p>Read a device Capability Value</p>
+    <p>Read a Homey device Capability Value</p>
+    <h3>Properties</h3>
+    <dl class="message-properties">
+      <dt>Homey
+        <span class="property-type">config</span>
+      </dt>
+      <dd>The Homey Config to use.
+      </dd>
+      <dt>Device
+        <span class="property-type">string | message field</span>
+      </dt>
+      <dd>The Homey Device Name.
+       <br />This can be a fixed string or a dynamic message field.
+      </dd>
+      <dt>Capability
+        <span class="property-type">string | message field</span>
+      </dt>
+      <dd>
+        The specific device Capability (Id) to read.
+        <br />This can be a fixed string or a dynamic message field.
+      </dd>
+    </dl>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+      <dt>payload
+        <span class="property-type">object</span>
+      </dt>
+      <dd>  
+        The Capability value object.
+        <br />
+        <ul>
+          <li><code>device</code>: device name</li>
+          <li><code>id</code>: capability id</li> 
+          <li><code>title</code>: capability title</li>
+          <li><code>desc</code>: capability description</li>
+          <li><code>value</code>: capability value</li>
+          <li><code>units</code>: capability units</li>
+          <li><code>lastUpdated</code>: update timestamp</li>
+        </ul>
+      </dd>
+    </dl>
+
 </script>

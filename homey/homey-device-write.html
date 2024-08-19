@@ -51,22 +51,51 @@
         <input type="text" id="node-input-homey" >
     </div>
     <div class="form-row">
-      <label for="node-input-device">Device Name</label>
+      <label for="node-input-device"> Device</label>
       <input id="node-input-device" type="text">
       <input id="node-input-deviceType" type="hidden">
     </div>
     <div class="form-row">
-      <label for="node-input-capability">Capability</label>
+      <label for="node-input-capability"> Capability</label>
       <input id="node-input-capability" type="text">
       <input id="node-input-capabilityType" type="hidden">
     </div>
     <div class="form-row">
-      <label for="node-input-value">Set Value</label>
+      <label for="node-input-value"> Value</label>
       <input id="node-input-value" type="text">
       <input id="node-input-valueType" type="hidden">
     </div>
 </script>
 
 <script type="text/x-red" data-help-name="homey-device-write">
-    <p>Write a device Capability Value</p>
+    <p>Write a Homey device Capability Value</p>
+    <h3>Properties</h3>
+    <dl class="message-properties">
+      <dt>Homey
+        <span class="property-type">config</span>
+      </dt>
+      <dd>The Homey Config to use.
+      </dd>
+      <dt>Device
+        <span class="property-type">string | message field</span>
+      </dt>
+      <dd>The Homey Device Name.
+       <br />This can be a fixed string or a dynamic message field.
+      </dd>
+      <dt>Capability
+        <span class="property-type">string | message field</span>
+      </dt>
+      <dd>
+        The specific device Capability (Id) to read.
+        <br />This can be a fixed string or a dynamic message field.
+      </dd>
+      <dt>Value
+        <span class="property-type">string | number | boolean</span>
+      </dt>
+      <dd>
+        The value to write.
+        <br />This can be a fixed value or a dynamic message field.
+        <br />The value type needs to match the Homey internal capability type.
+      </dd>
+    </dl>
 </script>

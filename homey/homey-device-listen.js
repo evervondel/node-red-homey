@@ -79,9 +79,10 @@ module.exports = function (RED) {
         
           if (this.listeners) {
             console.log('closing listeners');
-            listeners.forEach(listener => {
+            this.listeners.forEach(listener => {
               listener.destroy();
              })
+            this.listeners = null;
           }
 
           node.homey.close(node)
