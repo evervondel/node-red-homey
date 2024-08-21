@@ -1,10 +1,9 @@
 module.exports = function (RED) {
     "use strict";
-    const {AthomCloudAPI} = require('athom-api');
+    const AthomCloudAPI = require('homey-api/lib/AthomCloudAPI');
+    const {HomeyAPI} = require('homey-api');
     const fetch = require("node-fetch");
-
     //Create a new AthomCloudAPI instance
-    // Obtained through the developer portal/Athom
     const cloudAPI = new AthomCloudAPI({
       clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
       clientSecret: 'e3ace394af9f615857ceaa61b053f966ddcfb12a',
@@ -16,12 +15,17 @@ module.exports = function (RED) {
       this.homeyAPI = null;
 
       var homeyConfig = {
+        connection: config.connection,
+        // Cloud API
         email: this.credentials.username,
         password: this.credentials.password,
         clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
         clientSecret: 'e3ace394af9f615857ceaa61b053f966ddcfb12a',
         redirectUrl: 'http://localhost',
-        homeyCloudId: config.homeyid
+        homeyCloudId: config.homeyid,
+        // Local API
+        address: config.address,
+        apiToken: this.credentials.apitoken
       }
       this.homeyConfig = homeyConfig;
     }  
@@ -94,35 +98,48 @@ module.exports = function (RED) {
 
   //This function attempts to log-in to a specific homey and returns a HomeyAPI
   async function login(homeyConfig) {
-    if(!await cloudAPI.isLoggedIn()) {
 
-        //If we are not logged in but do have an OAuth2 authorization code 
-        // parameter in our URL, use it to authenticate
-        if(cloudAPI.hasAuthorizationCode()) {
-            await cloudAPI.authenticateWithAuthorizationCode();
-        } else {
-            //Redirect the user to the OAuth2 login page
-            var code = await getAuthorizationCode(homeyConfig);
-            await cloudAPI.authenticateWithAuthorizationCode(code);
-        }
-    }
-
-    const user = await cloudAPI.getAuthenticatedUser();
-    console.info('User', user.fullname, 'Authenticated');
-
-    // Get the homey instance
-    var homey;
-    if (homeyConfig.homeyCloudId) {
-      homey = user.getHomeyById(homeyConfig.homeyCloudId);
+    if (homeyConfig.connection === 'local') {
+      // LOCAL API
+      console.info('Logging in to:', homeyConfig.apiToken);
+      const homeyAPI = await HomeyAPI.createLocalAPI({
+        address: homeyConfig.address,
+        token: homeyConfig.apiToken
+      });
+    
+      return homeyAPI;
     }
     else {
-      homey = user.getFirstHomey();
-    }
+      // CLOUD API
+      if(!await cloudAPI.isLoggedIn()) {
+          //If we are not logged in but do have an OAuth2 authorization code 
+          // parameter in our URL, use it to authenticate
+          if(cloudAPI.hasAuthorizationCode()) {
+              await cloudAPI.authenticateWithAuthorizationCode();
+          } else {
+              //Redirect the user to the (simulated) OAuth2 login page
+              var code = await getAuthorizationCode(homeyConfig);
+              await cloudAPI.authenticateWithAuthorizationCode({code: code});
+          }
+      }
 
-    // Start a session on this Homey
-    console.info('Logging in to:', homey.name);
-    var homeyAPI = await homey.authenticate();
-    return homeyAPI;
+      const user = await cloudAPI.getAuthenticatedUser();
+      console.info('User', user.fullname, 'Authenticated');
+
+      // Get the homey instance
+      var homey;
+      if (homeyConfig.homeyCloudId) {
+        homey = user.getHomeyById(homeyConfig.homeyCloudId);
+      }
+      else {
+        homey = user.getFirstHomey();
+      }
+
+      // Start a session on this Homey
+      console.info('Logging in to:', homey.name);
+      var homeyAPI = await homey.authenticate();
+      return homeyAPI;
+    }
   }
 
 
@@ -130,7 +147,8 @@ module.exports = function (RED) {
   {
     credentials: {
         username: {type:"text"},
-        password: {type:"password"}
+        password: {type:"password"},
+        apitoken: {type:"password"}
     }
   });
 

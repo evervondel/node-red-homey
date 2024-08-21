@@ -4,12 +4,38 @@
       credentials: {
         username: {type:"text"},
         password: {type:"password"},
+        apitoken: {type:"password"}
       },
       defaults: {
           name: { value: "" },
+          connection: { value: 'cloud' },
           homeyid: {value:""},
+          address: {value: 'http://homey-<homeyid>.local'}
       },
       label: function() { return this.name; },
+
+      oneditprepare: function () {
+        $("#node-config-input-connection").typedInput({
+          types: [
+          {
+            value: "cloud",
+            options: [
+                { value: "local", label: "Local"},
+                { value: "cloud", label: "Cloud"},
+            ]
+          }]
+        })
+
+        $("#node-config-input-connection").on("change", function() {
+          if ($("#node-config-input-connection").val() == 'local') {
+            $("#localfields").show();
+            $("#cloudfields").hide();
+          } else {
+            $("#localfields").hide();
+            $("#cloudfields").show();
+          }
+        });
+      }
     });
   </script>
   
@@ -19,33 +45,73 @@
           <input type="text" id="node-config-input-name" placeholder="Name">
       </div>
       <div class="form-row">
-        <label for="node-config-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-config-input-username">
+        <label for="node-config-input-connection">Connection</label>
+        <input type="text" id="node-config-input-connection">
       </div>
-      <div class="form-row">
-        <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="password" id="node-config-input-password">
+      <br>
+      <div id="localfields">
+        <div class="form-row">
+          <label style="width:100%;"><strong><span>Local Connection Settings</span></strong></label>
+        </div>
+        <div class="form-row" style="padding-left:20px;">
+          <label for="node-config-input-address"><i class="fa fa-plug"></i> Address</label>
+          <input type="text" id="node-config-input-address">
+        </div>
+        <div class="form-row" style="padding-left:20px;">
+          <label for="node-config-input-apitoken"><i class="fa fa-key"></i> API Token</label>
+          <input type="password" id="node-config-input-apitoken">
+        </div>
       </div>
-      <div class="form-row">
-        <label for="node-config-input-homeyid"><i class="fa fa-plug"></i> Homey Id</label>
-        <input type="text" id="node-config-input-homeyid">
+
+      <div id="cloudfields">
+        <div class="form-row">
+          <label style="width:100%;"><strong><span>Cloud Connection Settings</span></strong></label>
+        </div>
+        <div class="form-row" style="padding-left:20px;">
+          <label for="node-config-input-username"><i class="fa fa-user"></i> Username</label>
+          <input type="text" id="node-config-input-username">
+        </div>
+        <div class="form-row" style="padding-left:20px;">
+          <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
+          <input type="password" id="node-config-input-password">
+        </div>
+        <div class="form-row" style="padding-left:20px;">
+          <label for="node-config-input-homeyid"><i class="fa fa-plug"></i> Homey Id</label>
+          <input type="text" id="node-config-input-homeyid">
+        </div>
       </div>
-    </div>
   </script>
   
   <script type="text/x-red" data-help-name="homey-config">
-      <p>Homey Web API Connection Configuration to connect to your Homey Device</p>
-      <h3>Properties</h3>
+      <p>Homey Connection API Configuration to connect to your Homey Device using a LOCAL or a CLOUD connection</p>
+      <h3>Local Connection Properties</h3>
+      <dl class="message-properties">
+        <dt>Address
+          <span class="property-type">url</span>
+        </dt>
+        <dd>Homey local network connection address.
+          <br />Use your Homey Pro's local IP address e.g. http://192.168.0.100
+          <br />Tip: In case you don't have a fixed address, you could also use the mDNS url as address. Use http://homey-xxxxxxxxxx.local, where xxxxxxxxxx is your Homey's ID.
+        </dd>
+        <dt>API Token
+          <span class="property-type">string</span>
+        </dt>
+        <dd>Your API Secret Token to connect to your Homey Device.
+          <br />@See <a href="https://support.homey.app/hc/en-us/articles/8178797067292-Getting-started-with-API-Keys" target="_blank">Getting-started-with-API-Keys.</a>
+        </dd>
+      </dl>
+      <h3>Cloud Connection Properties</h3>
       <dl class="message-properties">
         <dt>Username
           <span class="property-type">string</span>
         </dt>
         <dd>your Homey username (email).
+          <br />Note: A user with 2FA enabled is not supported.
         </dd>
         <dt>Password
           <span class="property-type">string</span>
         </dt>
-        <dd>your Homey username (email).
+        <dd>your Homey password.
         </dd>
         <dt>Homey ID
           <span class="property-type">string</span>
