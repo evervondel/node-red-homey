@@ -9,4 +9,5 @@ Homey Smart Home Platform Integration nodes using the Homey Web API.
 
 - home-device-listen: listen to device capability value changes
 
+- home-flow-trigger: trigger an (advanced) flow
 
