@@ -1,0 +1,71 @@
+<script type="text/javascript">
+  RED.nodes.registerType('homey-flow-trigger', {
+    category: 'Homey',
+    color: '#FFCC66',
+    defaults: {
+      name: { value: "" },
+      homey: {value:"", type:"homey-config"},
+      flow: { value: "", required: true},
+      flowType: { value: "str"},
+      advanced: { value: false},
+    },
+    inputs: 1,
+    outputs: 0,
+    icon: "font-awesome/fa-code-fork",
+    align: "right",
+    label: function () {
+      return this.name || "homey-flow-trigger";
+    },
+    oneditprepare: function () {
+      $("#node-input-flow").typedInput({
+        typeField: "#node-input-flowType",
+        types: [ "str", "msg"],
+        default: "str"
+      });
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="homey-flow-trigger">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-homey"><i class="fa fa-random"></i> Homey</label>
+        <input type="text" id="node-input-homey" >
+    </div>
+    <div class="form-row">
+      <label for="node-input-flow"> Flow</label>
+      <input id="node-input-flow" type="text">
+      <input id="node-input-flowType" type="hidden">
+    </div>
+    <div class="form-row">
+      <label for="node-input-advanced"><span> Advanced</span></label>
+      <input style="width:20px; vertical-align:baseline;" type="checkbox" id="node-input-advanced" autocomplete="off">
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="homey-flow-trigger">
+    <p>Trigger a Homey Flow</p>
+    <h3>Properties</h3>
+    <dl class="message-properties">
+      <dt>Homey
+        <span class="property-type">config</span>
+      </dt>
+      <dd>The Homey Config to use.
+      </dd>
+      <dt>Flow
+        <span class="property-type">string | message field</span>
+      </dt>
+      <dd>The Homey (Advanced) Flow Name.
+       <br />This can be a fixed string or a dynamic message field.
+      </dd>
+      <dt>Advanced
+        <span class="property-type">boolean</span>
+      </dt>
+      <dd>
+        Indicates if the specified flow is an advanced flow or not.
+      </dd>
+    </dl>
+</script>
