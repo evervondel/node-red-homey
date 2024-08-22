@@ -21,7 +21,8 @@
 	  "homey-config": "homey/homey-config.js",
     "homey-device-write": "homey/homey-device-write.js",
     "homey-device-read": "homey/homey-device-read.js",
-    "homey-device-listen": "homey/homey-device-listen.js"
+    "homey-device-listen": "homey/homey-device-listen.js",
+    "homey-flow-trigger": "homey/homey-flow-trigger.js"
 	}
   },
   "engines": {
