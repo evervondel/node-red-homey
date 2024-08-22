@@ -43,7 +43,7 @@ module.exports = function (RED) {
             valueValue = RED.util.getMessageProperty(msg, value);
           }
 
-          console.log('writing to device [' + deviceName + '] capability [' + capabilityName + '] value [' + valueValue + ']');
+          node.debug('writing to device [' + deviceName + '] capability [' + capabilityName + '] value [' + valueValue + ']');
           node.homey.writeDevice(node, deviceName, capabilityName, valueValue);
         }
 

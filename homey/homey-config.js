@@ -97,11 +97,11 @@ module.exports = function (RED) {
   }    
 
   //This function attempts to log-in to a specific homey and returns a HomeyAPI
-  async function login(homeyConfig) {
+  async function login(node, homeyConfig) {
 
     if (homeyConfig.connection === 'local') {
       // LOCAL API
-      console.info('Logging in to:', homeyConfig.apiToken);
+      node.debug('Logging in to local Homey ' + homeyConfig.address);
       const homeyAPI = await HomeyAPI.createLocalAPI({
         address: homeyConfig.address,
         token: homeyConfig.apiToken
@@ -124,7 +124,7 @@ module.exports = function (RED) {
       }
 
       const user = await cloudAPI.getAuthenticatedUser();
-      console.info('User', user.fullname, 'Authenticated');
+      node.debug('User', user.fullname, 'Authenticated');
 
       // Get the homey instance
       var homey;
@@ -136,7 +136,7 @@ module.exports = function (RED) {
       }
 
       // Start a session on this Homey
-      console.info('Logging in to:', homey.name);
+      node.debug('Logging in to:', homey.name);
       var homeyAPI = await homey.authenticate();
       return homeyAPI;
     }
@@ -155,7 +155,7 @@ module.exports = function (RED) {
   HomeyConfigNode.prototype.getDevice = async function getDevice(node, deviceName)
   {
     if (!this.homeyAPI) {
-      this.homeyAPI = await login(this.homeyConfig);
+      this.homeyAPI = await login(node, this.homeyConfig);
     }
 
     let devices = await this.homeyAPI.devices.getDevices();
@@ -172,7 +172,7 @@ module.exports = function (RED) {
   HomeyConfigNode.prototype.writeDevice = async function writeDevice(node, deviceName, capabilityName, value)
   {
     if (!this.homeyAPI) {
-      this.homeyAPI = await login(this.homeyConfig);
+      this.homeyAPI = await login(node, this.homeyConfig);
     }
 
     let devices = await this.homeyAPI.devices.getDevices();
@@ -197,7 +197,7 @@ module.exports = function (RED) {
   HomeyConfigNode.prototype.readDevice = async function readDevice(node, deviceName, capabilityName)
   {
     if (!this.homeyAPI) {
-      this.homeyAPI = await login(this.homeyConfig);
+      this.homeyAPI = await login(node, this.homeyConfig);
     }
 
     let devices = await this.homeyAPI.devices.getDevices();
@@ -227,24 +227,61 @@ module.exports = function (RED) {
     return payload
   }
 
+  HomeyConfigNode.prototype.triggerFlow = async function triggerFlow(node, flowName, advanced)
+  {
+    if (!this.homeyAPI) {
+      this.homeyAPI = await login(node, this.homeyConfig);
+    }
+
+    if (advanced) {
+      // trigger advanced flow
+      let flows = await this.homeyAPI.flow.getAdvancedFlows();
+      let flow = Object.values(flows).find(flow => flow.name === flowName);
+      if (!flow) {
+        node.status({fill:"red",shape:"ring",text: flowName + " not found"});
+        node.warn('flow [' + flowName + '] not found');  
+        return;
+      }
+
+      this.homeyAPI.flow.triggerAdvancedFlow({ id: flow.id }).
+      then (data => {
+        node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
+        node.debug('flow [' + flowName + '] triggered');
+      })
+      .catch(err => {
+        node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
+        node.warn(err.message);  
+      })
+    } 
+    else {
+      // trigger regular flow
+      let flows = await this.homeyAPI.flow.getFlows();
+      let flow = Object.values(flows).find(flow => flow.name === flowName);
+      if (!flow) {
+        node.status({fill:"red",shape:"ring",text: flowName + " not found"});
+        node.warn('flow [' + flowName + '] not found');  
+        return
+      }
+
+      this.homeyAPI.flow.triggerFlow({ id: flow.id }).
+      then (data => {
+        node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
+        node.debug('flow [' + flowName + '] triggered');
+      })
+      .catch(err => {
+        node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
+        node.warn(err.message);  
+      })
+    }
+  }
 
   HomeyConfigNode.prototype.close = async function close(node)
   {
     if (this.homeyAPI) {
-      console.log('closing homeyAPI');
-/*
-      cloudAPI.logout().then(() => {
-        console.log('logged out');
-        this.homeyAPI = null;
-      })
-      .catch(err => {
-        console.log('logout error', err);
-        this.homeyAPI = null;
-      });
-*/
-    node.status({});
-    this.homeyAPI = null;
+      node.debug('closing homeyAPI');
+      this.homeyAPI = null;
     }
+    if (node) node.status({});
   }
 
 };

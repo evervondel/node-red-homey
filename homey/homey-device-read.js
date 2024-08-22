@@ -32,7 +32,7 @@ module.exports = function (RED) {
             capabilityName = RED.util.getMessageProperty(msg, capability);
           }
 
-          console.log('read from device [' + deviceName + '] capability [' + capabilityName + ']');
+          node.debug('read from device [' + deviceName + '] capability [' + capabilityName + ']');
           node.homey.readDevice(node, deviceName, capabilityName).
           then(data => {
             if (data) {
@@ -44,7 +44,7 @@ module.exports = function (RED) {
           .catch(err => {
             node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + ' not read'});
             node.warn(err.message);  
-            if (done) done();
+            if (done) done(err);
           })
         }
 

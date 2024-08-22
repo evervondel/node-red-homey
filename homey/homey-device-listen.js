@@ -78,7 +78,7 @@ module.exports = function (RED) {
         if (node.homey) {
         
           if (this.listeners) {
-            console.log('closing listeners');
+            node.debug('closing listeners');
             this.listeners.forEach(listener => {
               listener.destroy();
              })
@@ -93,7 +93,7 @@ module.exports = function (RED) {
 
     async function onStateChange(node, capability, value, deviceName)
     {
-      console.log('+', deviceName, capability.id,  value, capability.units)
+      node.debug('+', deviceName, capability.id,  value, capability.units)
       let payload = {
         device: deviceName,
         id: capability.id,
