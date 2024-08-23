@@ -1,0 +1,324 @@
+[
+    {
+        "id": "dfa0f7717837db22",
+        "type": "tab",
+        "label": "Homey Examples",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c032270892866421",
+        "type": "homey-device-write",
+        "z": "dfa0f7717837db22",
+        "name": "light ON",
+        "homey": "e1653eafb4869e71",
+        "device": "licht kast",
+        "deviceType": "str",
+        "capability": "onoff",
+        "capabilityType": "str",
+        "value": "true",
+        "valueType": "bool",
+        "x": 380,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "f4b6829c25254172",
+        "type": "inject",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 140,
+        "wires": [
+            [
+                "c032270892866421"
+            ]
+        ]
+    },
+    {
+        "id": "764d7f2ac73e83f4",
+        "type": "homey-device-write",
+        "z": "dfa0f7717837db22",
+        "name": "light OFF",
+        "homey": "e1653eafb4869e71",
+        "device": "licht kast",
+        "deviceType": "str",
+        "capability": "onoff",
+        "capabilityType": "str",
+        "value": "false",
+        "valueType": "bool",
+        "x": 380,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "90b8454244ef48f6",
+        "type": "inject",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 180,
+        "wires": [
+            [
+                "764d7f2ac73e83f4"
+            ]
+        ]
+    },
+    {
+        "id": "8555a6d8edce19e2",
+        "type": "inject",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"deviceName\":\"mydevice\",\"capability\":\"Mycapabiliy\",\"value\":true}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 240,
+        "wires": [
+            [
+                "ff280596613ad4dc"
+            ]
+        ]
+    },
+    {
+        "id": "ff280596613ad4dc",
+        "type": "homey-device-write",
+        "z": "dfa0f7717837db22",
+        "name": "message based write",
+        "homey": "e1653eafb4869e71",
+        "device": "payload.device",
+        "deviceType": "msg",
+        "capability": "payload.capability",
+        "capabilityType": "msg",
+        "value": "payload.value",
+        "valueType": "msg",
+        "x": 420,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "64771daab137277e",
+        "type": "homey-device-read",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "homey": "e1653eafb4869e71",
+        "device": "HEM - 3 phase",
+        "deviceType": "str",
+        "capability": "measure_power",
+        "capabilityType": "str",
+        "x": 370,
+        "y": 380,
+        "wires": [
+            [
+                "d8eef492738b28b0"
+            ]
+        ]
+    },
+    {
+        "id": "369c93b10abdbe57",
+        "type": "inject",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 380,
+        "wires": [
+            [
+                "64771daab137277e"
+            ]
+        ]
+    },
+    {
+        "id": "d8eef492738b28b0",
+        "type": "debug",
+        "z": "dfa0f7717837db22",
+        "name": "read result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "c2baaa360b7d69c4",
+        "type": "homey-device-listen",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "homey": "e1653eafb4869e71",
+        "device": "HEM - 3 phase",
+        "deviceType": "str",
+        "capability": "",
+        "capabilityType": "str",
+        "x": 170,
+        "y": 460,
+        "wires": [
+            [
+                "7c31799acd512c82"
+            ]
+        ]
+    },
+    {
+        "id": "7c31799acd512c82",
+        "type": "debug",
+        "z": "dfa0f7717837db22",
+        "name": "changed capabilities result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "18683039be5c4918",
+        "type": "inject",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 580,
+        "wires": [
+            [
+                "b60d2dcf90320896"
+            ]
+        ]
+    },
+    {
+        "id": "b60d2dcf90320896",
+        "type": "homey-flow-trigger",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "homey": "e1653eafb4869e71",
+        "flow": "test",
+        "flowType": "str",
+        "advanced": false,
+        "x": 370,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "2adaef2e792b7c70",
+        "type": "comment",
+        "z": "dfa0f7717837db22",
+        "name": "Device Write Examples",
+        "info": "",
+        "x": 120,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "5925a5854eb9be61",
+        "type": "comment",
+        "z": "dfa0f7717837db22",
+        "name": "Device Read Examples",
+        "info": "",
+        "x": 120,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "9a7b9e98fd5015c5",
+        "type": "comment",
+        "z": "dfa0f7717837db22",
+        "name": "Flow Trigger Example",
+        "info": "",
+        "x": 120,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "e1653eafb4869e71",
+        "type": "homey-config",
+        "name": "My Homey",
+        "connection": "cloud",
+        "homeyid": "",
+        "address": "http://homey-<homeyid>.local"
+    }
+]
