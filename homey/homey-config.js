@@ -3,6 +3,7 @@ module.exports = function (RED) {
     const AthomCloudAPI = require('homey-api/lib/AthomCloudAPI');
     const {HomeyAPI} = require('homey-api');
     const fetch = require("node-fetch");
+
     //Create a new AthomCloudAPI instance
     const cloudAPI = new AthomCloudAPI({
       clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
@@ -98,47 +99,63 @@ module.exports = function (RED) {
 
   //This function attempts to log-in to a specific homey and returns a HomeyAPI
   async function login(node, homeyConfig) {
-
-    if (homeyConfig.connection === 'local') {
-      // LOCAL API
-      node.debug('Logging in to local Homey ' + homeyConfig.address);
-      const homeyAPI = await HomeyAPI.createLocalAPI({
-        address: homeyConfig.address,
-        token: homeyConfig.apiToken
-      });
-    
-      return homeyAPI;
-    }
-    else {
-      // CLOUD API
-      if(!await cloudAPI.isLoggedIn()) {
-          //If we are not logged in but do have an OAuth2 authorization code 
-          // parameter in our URL, use it to authenticate
-          if(cloudAPI.hasAuthorizationCode()) {
-              await cloudAPI.authenticateWithAuthorizationCode();
-          } else {
-              //Redirect the user to the (simulated) OAuth2 login page
-              var code = await getAuthorizationCode(homeyConfig);
-              await cloudAPI.authenticateWithAuthorizationCode({code: code});
-          }
-      }
-
-      const user = await cloudAPI.getAuthenticatedUser();
-      node.debug('User', user.fullname, 'Authenticated');
-
-      // Get the homey instance
-      var homey;
-      if (homeyConfig.homeyCloudId) {
-        homey = user.getHomeyById(homeyConfig.homeyCloudId);
+    try {
+      if (homeyConfig.connection === 'local') {
+        // LOCAL API
+        node.debug('Logging in to local Homey ' + homeyConfig.address);
+        const homeyAPI = await HomeyAPI.createLocalAPI({
+          address: homeyConfig.address,
+          token: homeyConfig.apiToken
+        });
+      
+        if (!homeyAPI) {
+          node.warn('Homey Local API Connection failed');
+          node.status({fill:"red",shape:"ring",text: 'Homey Login failed'});
+          return null;
+        }
+        return homeyAPI;
       }
       else {
-        homey = user.getFirstHomey();
+        // CLOUD API
+        if(!await cloudAPI.isLoggedIn()) {
+            //If we are not logged in but do have an OAuth2 authorization code 
+            // parameter in our URL, use it to authenticate
+            if(cloudAPI.hasAuthorizationCode()) {
+                await cloudAPI.authenticateWithAuthorizationCode();
+            } else {
+                //Redirect the user to the (simulated) OAuth2 login page
+                var code = await getAuthorizationCode(homeyConfig);
+                await cloudAPI.authenticateWithAuthorizationCode({code: code});
+            }
+        }
+  
+        const user = await cloudAPI.getAuthenticatedUser();
+        node.debug('User', user.fullname, 'Authenticated');
+  
+        // Get the homey instance
+        var homey;
+        if (homeyConfig.homeyCloudId) {
+          homey = user.getHomeyById(homeyConfig.homeyCloudId);
+        }
+        else {
+          homey = user.getFirstHomey();
+        }
+  
+        // Start a session on this Homey
+        node.debug('Logging in to:', homey.name);
+        var homeyAPI = await homey.authenticate();
+        if (!homeyAPI) {
+          node.warn('Homey Cloud API Connection failed');
+          node.status({fill:"red",shape:"ring",text: 'Homey Login failed'});
+          return null;
+        }
+        return homeyAPI;
       }
-
-      // Start a session on this Homey
-      node.debug('Logging in to:', homey.name);
-      var homeyAPI = await homey.authenticate();
-      return homeyAPI;
+        
+    } catch (error) {
+      node.warn('Error logging in to Homey: ' + error);
+      node.status({fill:"red",shape:"ring",text: 'Homey Login failed'});
+      return null;
     }
   }
 
@@ -156,6 +173,7 @@ module.exports = function (RED) {
   {
     if (!this.homeyAPI) {
       this.homeyAPI = await login(node, this.homeyConfig);
+      if (!this.homeyAPI) return null;
     }
 
     let devices = await this.homeyAPI.devices.getDevices();
@@ -173,6 +191,7 @@ module.exports = function (RED) {
   {
     if (!this.homeyAPI) {
       this.homeyAPI = await login(node, this.homeyConfig);
+      if (!this.homeyAPI) return;
     }
 
     let devices = await this.homeyAPI.devices.getDevices();
@@ -198,6 +217,7 @@ module.exports = function (RED) {
   {
     if (!this.homeyAPI) {
       this.homeyAPI = await login(node, this.homeyConfig);
+      if (!this.homeyAPI) return null;
     }
 
     let devices = await this.homeyAPI.devices.getDevices();
@@ -231,6 +251,7 @@ module.exports = function (RED) {
   {
     if (!this.homeyAPI) {
       this.homeyAPI = await login(node, this.homeyConfig);
+      if (!this.homeyAPI) return;
     }
 
     if (advanced) {
