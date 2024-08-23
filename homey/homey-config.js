@@ -47,6 +47,14 @@ module.exports = function (RED) {
           "mode": "cors",
           "credentials": "omit"
       })
+
+      if (!response.ok) {
+        // get error message
+        let body = await response.text()
+        let data = JSON.parse(body)
+        throw new Error('login: ' + data.error + ', ' + data.error_description);  
+      }
+  
       let body = await response.text()
       let token = JSON.parse(body)
       
@@ -67,13 +75,17 @@ module.exports = function (RED) {
       //    ...
       body = await response.text()
       let csrf = body.split('name="_csrf" value="').pop().split('">')[0].trim();
-  
+      if (!csrf) throw new Error('login: CSRF token not found');
+
       // get CSRF Cookie
       //    ...
       //    'set-cookie': [ '_csrf=u76gq85p7EXUCguTW4Ui_xg9; Path=/' ],
       //    ...
       let cookies = response.headers.raw()['set-cookie']
+      if (!cookies) throw new Error('login: CSRF cookie not found');
+
       let rawCookie = cookies.find(s => s.startsWith('_csrf='));
+      if (!rawCookie) throw new Error('login: CSRF cookie not found');
       let cookie = rawCookie.split(';')[0];
   
       // Step 3, 'mimic' the authorisation form confirmation
