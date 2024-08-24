@@ -8,6 +8,8 @@ Both Cloud (*AthomCloudAPI*) and Local (*HomeyAPI*) connections are supported.
 
 - **homey-device-read**: read a device capability value
 - **homey-device-write**: write a device capability value
-- **home-device-listen**: listen to device capability value changes
-- **home-flow-trigger**: trigger an (advanced) flow
+- **homey-device-listen**: listen to device capability value changes
+- **homey-flow-trigger**: trigger an (advanced) flow
+- **homey-logic-read**: read a logic variable value
+- **homey-logic-write**: write a logic variable value
 
