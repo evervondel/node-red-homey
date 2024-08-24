@@ -1,9 +1,10 @@
-const {AthomCloudAPI} = require('athom-api');
+const AthomCloudAPI = require('homey-api/lib/AthomCloudAPI');
+const {HomeyAPI} = require('homey-api');
 const fetch = require("node-fetch");
 
 process.on('unhandledRejection', error => {
     // Will print "unhandledRejection err is not defined"
-    console.log('unhandledRejection', error.message);
+    console.log('unhandledRejection', error);
   });
 
 
@@ -43,9 +44,19 @@ async function getAuthorizationCode() {
         "mode": "cors",
         "credentials": "omit"
     })
+
+    if (!response.ok) {
+      // get error message
+      let body = await response.text()
+      console.log('1. ' + body);
+      let data = JSON.parse(body)
+      throw new Error('login: ' + data.error + ', ' + data.error_description);  
+    }
+
     let body = await response.text()
+    console.log('1. ' + body);
     let token = JSON.parse(body)
-    
+
     // Step 2, obtain an authorise redirect
     url = 'https://accounts.athom.com/oauth2/authorise?client_id=' + config.clientId + 
       '&redirect_uri=' + encodeURIComponent(config.redirectUrl) + '&response_type=code&user_token=' + token.token
@@ -62,14 +73,19 @@ async function getAuthorizationCode() {
     //    <input type="hidden" name="_csrf" value="HyMIxlAx-xdoe64dpEyRdp6ny5kvKFJKKxL0">
     //    ...
     body = await response.text()
+    console.log('2. ' + body);
     let csrf = body.split('name="_csrf" value="').pop().split('">')[0].trim();
+    if (!csrf) throw new Error('login: CSRF token not found');
 
     // get CSRF Cookie
     //    ...
     //    'set-cookie': [ '_csrf=u76gq85p7EXUCguTW4Ui_xg9; Path=/' ],
     //    ...
     let cookies = response.headers.raw()['set-cookie']
+    if (!cookies) throw new Error('login: CSRF cookie not found');
+
     let rawCookie = cookies.find(s => s.startsWith('_csrf='));
+    if (!rawCookie) throw new Error('login: CSRF cookie not found');
     let cookie = rawCookie.split(';')[0];
 
     // Step 3, 'mimic' the authorisation form confirmation
@@ -88,7 +104,9 @@ async function getAuthorizationCode() {
     
     // parse authentication code
     //    'Found. Redirecting to http://localhost?code=47b2ddbc716136edeeb9558bfe3dab66b93738b2'
+    
     body = await response.text()
+    console.log('3. ' + body);
     let code = body.split("=")[1]
     return code;
 }    
@@ -106,10 +124,12 @@ async function login() {
         } else {
             //Redirect the user to the OAuth2 login page
             code = await getAuthorizationCode();
-            await cloudAPI.authenticateWithAuthorizationCode(code);
+            await cloudAPI.authenticateWithAuthorizationCode({code: code});
+            
         }
     }
 
+    console.log('Authenticated');
     const user = await cloudAPI.getAuthenticatedUser();
     console.info('User', user.fullname, 'Authenticated');
 
@@ -123,6 +143,17 @@ async function login() {
     console.info('homeyAPI created');
     return homeyAPI;
 }
+
+async function loginLocal() {
+  homeyAPI = await HomeyAPI.createLocalAPI({
+    address: 'http://homey-<id>.local', // Replace this with Homey Pro's IP address or name
+    token: '<token>', // Replace this with your API Key
+  });
+
+  console.log('homeyAPI created' + homeyAPI);
+  return homeyAPI;
+}
+
 
 async function listDevices() {
   let devices = await homeyAPI.devices.getDevices({ online: true });
@@ -231,16 +262,41 @@ function sleep(ms) {
   });
 }
 
+async function getFlowByName(flowName) {
+  let flows = await homeyAPI.flow.getFlows();
+  return Object.values(flows).find(flow => flow.name === flowName);
+}
+
+async function triggerFlow(flowName) {
+  let flow = await getFlowByName(flowName);
+  if (flow) {
+    console.log('triggering flow', flow);
+    await homeyAPI.flow.triggerFlow({ id: flow.id });
+  }
+  else {
+    console.log('flow [' + flowName + '] not found');
+  }
+
+}
+
+
 void async function main() {
+  try {
     await login()
-    await readDevice("HEM - 3 phase", "measure_power")
-    await readDevice("licht kast", "onoff")
-    await writeDevice("licht kast", "onoff", true)
-    await sleep(5000);
-    await writeDevice("licht kast", "onoff", false)
-    await readDevice("licht kast", "onoff")
-    //await listenChanges();
-    //await sayHello()
+    //await loginLocal()
+  } catch (error) {
+    console.log(error);
+    return;
+  }
+  await triggerFlow("test");
+  //await readDevice("HEM - 3 phase", "measure_power")
+  //await readDevice("licht kast", "onoff")
+  //await writeDevice("licht kast", "onoff", true)
+  //await sleep(5000);
+  //await writeDevice("licht kast", "onoff", false)
+  //await readDevice("licht kast", "onoff")
+  //await listenChanges();
+  //await sayHello()
   }()
 
   
