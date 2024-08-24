@@ -259,6 +259,56 @@ module.exports = function (RED) {
     return payload
   }
 
+  HomeyConfigNode.prototype.writeVariable = async function writeVariable(node, variableName, value)
+  {
+    if (!this.homeyAPI) {
+      this.homeyAPI = await login(node, this.homeyConfig);
+      if (!this.homeyAPI) return;
+    }
+
+    let variables = await this.homeyAPI.logic.getVariables();
+    let variable = Object.values(variables).find(variable => variable.name === variableName);
+    if (!variable) {
+      node.status({fill:"red",shape:"ring",text: variableName + " not found"});
+      node.warn('variable [' + variableName + '] not found');  
+      return
+    }
+  
+    this.homeyAPI.logic.updateVariable({id: variable.id, variable: { value: value }}).
+        then(data => {
+          node.status({fill:"green",shape:"ring",text: variableName + ' = ' + value});
+          node.debug(variableName + ' = ' + value);
+        })
+        .catch(err => {
+          node.status({fill:"red",shape:"ring",text: variableName + ' not set'});
+          node.warn(err.message);  
+        })
+  }
+
+  HomeyConfigNode.prototype.readVariable = async function readVariable(node, variableName)
+  {
+    if (!this.homeyAPI) {
+      this.homeyAPI = await login(node, this.homeyConfig);
+      if (!this.homeyAPI) return null;
+    }
+
+    let variables = await this.homeyAPI.logic.getVariables();
+    let variable = Object.values(variables).find(variable => variable.name === variableName);
+    if (!variable) {
+      node.status({fill:"red",shape:"ring",text: variableName + " not found"});
+      node.warn('variable [' + variableName + '] not found');  
+      return
+    }
+  
+    let payload = {
+      name: variable.name,
+      type: variable.type,
+      value: variable.value
+    }
+    return payload
+  }
+
+
   HomeyConfigNode.prototype.triggerFlow = async function triggerFlow(node, flowName, advanced)
   {
     if (!this.homeyAPI) {

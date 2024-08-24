@@ -1,33 +1,25 @@
 <script type="text/javascript">
-  RED.nodes.registerType('homey-device-write', {
+  RED.nodes.registerType('homey-logic-write', {
     category: 'Homey',
     color: '#FFCC66',
     defaults: {
       name: { value: "" },
       homey: {value:"", type:"homey-config"},
-      device: { value: "", required: true},
-      deviceType: { value: "str"},
-      capability: { value: "", required: true},
-      capabilityType: { value: "str"},
+      variable: { value: "", required: true},
+      variableType: { value: "str"},
       value: { value: "", required: true},
       valueType: { value: "bool"}
     },
     inputs: 1,
     outputs: 0,
-    icon: "font-awesome/fa-angle-double-right",
+    icon: "font-awesome/fa-hashtag",
     align: "right",
     label: function () {
-      return this.name || "homey-device-write";
+      return this.name || "homey-logic-write";
     },
     oneditprepare: function () {
-      $("#node-input-device").typedInput({
-        typeField: "#node-input-deviceType",
-        types: [ "str", "msg"],
-        default: "str"
-      });
-
-      $("#node-input-capability").typedInput({
-        typeField: "#node-input-capabilityType",
+      $("#node-input-variable").typedInput({
+        typeField: "#node-input-variableType",
         types: [ "str", "msg"],
         default: "str"
       });
@@ -41,7 +33,7 @@
   });
 </script>
 
-<script type="text/x-red" data-template-name="homey-device-write">
+<script type="text/x-red" data-template-name="homey-logic-write">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -51,14 +43,9 @@
         <input type="text" id="node-input-homey" >
     </div>
     <div class="form-row">
-      <label for="node-input-device"> Device</label>
-      <input id="node-input-device" type="text">
-      <input id="node-input-deviceType" type="hidden">
-    </div>
-    <div class="form-row">
-      <label for="node-input-capability"> Capability</label>
-      <input id="node-input-capability" type="text">
-      <input id="node-input-capabilityType" type="hidden">
+      <label for="node-input-variable"> Variable</label>
+      <input id="node-input-variable" type="text">
+      <input id="node-input-variableType" type="hidden">
     </div>
     <div class="form-row">
       <label for="node-input-value"> Value</label>
@@ -67,8 +54,8 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="homey-device-write">
-    <p>Write a Homey device Capability Value</p>
+<script type="text/x-red" data-help-name="homey-logic-write">
+    <p>Write a Homey Logic Variable Value</p>
     <h3>Properties</h3>
     <dl class="message-properties">
       <dt>Homey
@@ -76,17 +63,11 @@
       </dt>
       <dd>The Homey Config to use.
       </dd>
-      <dt>Device
-        <span class="property-type">string | message field</span>
-      </dt>
-      <dd>The Homey Device Name.
-       <br />This can be a fixed string or a dynamic message field.
-      </dd>
-      <dt>Capability
+      <dt>Variable
         <span class="property-type">string | message field</span>
       </dt>
       <dd>
-        The specific device Capability (Id) to write.
+        The specific logic variable to write.
         <br />This can be a fixed string or a dynamic message field.
       </dd>
       <dt>Value
@@ -95,11 +76,7 @@
       <dd>
         The value to write.
         <br />This can be a fixed value or a dynamic message field.
-        <br />Important!:The value type needs to match the Homey internal capability type.
+        <br />Important!:The value type needs to match the Homey internal variable type.
       </dd>
     </dl>
-
-    <h3>Details</h3>
-    <p>Hint: The easiest way to get your device names and their capability id's is to use the <a href="https://tools.developer.homey.app/tools/devices" target="_blank">Homey Developer Tools Devices page</a></p>
-
 </script>

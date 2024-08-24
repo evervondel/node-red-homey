@@ -153,7 +153,7 @@
         "capability": "measure_power",
         "capabilityType": "str",
         "x": 370,
-        "y": 380,
+        "y": 360,
         "wires": [
             [
                 "d8eef492738b28b0"
@@ -182,7 +182,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 160,
-        "y": 380,
+        "y": 360,
         "wires": [
             [
                 "64771daab137277e"
@@ -203,7 +203,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 570,
-        "y": 380,
+        "y": 360,
         "wires": []
     },
     {
@@ -217,7 +217,7 @@
         "capability": "",
         "capabilityType": "str",
         "x": 170,
-        "y": 460,
+        "y": 440,
         "wires": [
             [
                 "7c31799acd512c82"
@@ -238,7 +238,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 520,
-        "y": 460,
+        "y": 440,
         "wires": []
     },
     {
@@ -263,7 +263,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 160,
-        "y": 580,
+        "y": 560,
         "wires": [
             [
                 "b60d2dcf90320896"
@@ -280,7 +280,7 @@
         "flowType": "str",
         "advanced": false,
         "x": 370,
-        "y": 580,
+        "y": 560,
         "wires": []
     },
     {
@@ -310,7 +310,122 @@
         "name": "Flow Trigger Example",
         "info": "",
         "x": 120,
-        "y": 540,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "b2178bb115c1813e",
+        "type": "comment",
+        "z": "dfa0f7717837db22",
+        "name": "Logic Variables Example",
+        "info": "",
+        "x": 130,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "893df62625d53693",
+        "type": "homey-logic-write",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "homey": "e1653eafb4869e71",
+        "variable": "temp",
+        "variableType": "str",
+        "value": "10",
+        "valueType": "num",
+        "x": 370,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "26e25ccc0ef034ae",
+        "type": "homey-logic-read",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "homey": "e1653eafb4869e71",
+        "variable": "temp",
+        "variableType": "str",
+        "x": 370,
+        "y": 740,
+        "wires": [
+            [
+                "167d451427a635c7"
+            ]
+        ]
+    },
+    {
+        "id": "c140e02250217199",
+        "type": "inject",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 680,
+        "wires": [
+            [
+                "893df62625d53693"
+            ]
+        ]
+    },
+    {
+        "id": "429696cd4f1ce2ea",
+        "type": "inject",
+        "z": "dfa0f7717837db22",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 160,
+        "y": 740,
+        "wires": [
+            [
+                "26e25ccc0ef034ae"
+            ]
+        ]
+    },
+    {
+        "id": "167d451427a635c7",
+        "type": "debug",
+        "z": "dfa0f7717837db22",
+        "name": "var read result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 740,
         "wires": []
     },
     {

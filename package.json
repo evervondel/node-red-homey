@@ -22,7 +22,9 @@
     "homey-device-write": "homey/homey-device-write.js",
     "homey-device-read": "homey/homey-device-read.js",
     "homey-device-listen": "homey/homey-device-listen.js",
-    "homey-flow-trigger": "homey/homey-flow-trigger.js"
+    "homey-flow-trigger": "homey/homey-flow-trigger.js",
+    "homey-logic-write": "homey/homey-logic-write.js",
+    "homey-logic-read": "homey/homey-logic-read.js"
 	}
   },
   "engines": {

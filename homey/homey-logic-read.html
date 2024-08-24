@@ -1,0 +1,77 @@
+<script type="text/javascript">
+  RED.nodes.registerType('homey-logic-read', {
+    category: 'Homey',
+    color: '#FFCC66',
+    defaults: {
+      name: { value: "" },
+      homey: {value:"", type:"homey-config"},
+      variable: { value: "", required: true},
+      variableType: { value: "str"},
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "font-awesome/fa-hashtag",
+    align: "left",
+    label: function () {
+      return this.name || "homey-logic-read";
+    },
+    oneditprepare: function () {
+      $("#node-input-variable").typedInput({
+        typeField: "#node-input-variableType",
+        types: [ "str", "msg"],
+        default: "str"
+      });
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="homey-logic-read">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-homey"><i class="fa fa-random"></i> Homey</label>
+        <input type="text" id="node-input-homey" >
+    </div>
+    <div class="form-row">
+      <label for="node-input-variable"> Variable</label>
+      <input id="node-input-variable" type="text">
+      <input id="node-input-variableType" type="hidden">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="homey-logic-read">
+    <p>Read a Homey Logic Variable Value</p>
+    <h3>Properties</h3>
+    <dl class="message-properties">
+      <dt>Homey
+        <span class="property-type">config</span>
+      </dt>
+      <dd>The Homey Config to use.
+      </dd>
+      <dt>Variable
+        <span class="property-type">string | message field</span>
+      </dt>
+      <dd>
+        The specific logic variable to read.
+        <br />This can be a fixed string or a dynamic message field.
+      </dd>
+    </dl>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+      <dt>payload
+        <span class="property-type">object</span>
+      </dt>
+      <dd>  
+        The Logic Variable value object.
+        <br />
+        <ul>
+          <li><code>name</code>: variable name</li> 
+          <li><code>type</code>: variable type</li>
+          <li><code>value</code>: variable value</li>
+        </ul>
+      </dd>
+    </dl>
+</script>
