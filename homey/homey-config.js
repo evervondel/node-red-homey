@@ -29,6 +29,13 @@ module.exports = function (RED) {
         apiToken: this.credentials.apitoken
       }
       this.homeyConfig = homeyConfig;
+
+      this.on('close', function() {
+        if (this.homeyAPI) {
+          this.debug('close');
+          this.homeyAPI = null;
+        }
+      });
     }  
 
     async function getAuthorizationCode(config) {
@@ -142,7 +149,7 @@ module.exports = function (RED) {
         }
   
         const user = await cloudAPI.getAuthenticatedUser();
-        node.debug('User', user.fullname, 'Authenticated');
+        node.debug('User ' + user.fullname + ' Authenticated');
   
         // Get the homey instance
         var homey;
@@ -154,7 +161,7 @@ module.exports = function (RED) {
         }
   
         // Start a session on this Homey
-        node.debug('Logging in to:', homey.name);
+        node.debug('Logging in to ' + homey.name);
         var homeyAPI = await homey.authenticate();
         if (!homeyAPI) {
           node.warn('Homey Cloud API Connection failed');
@@ -322,14 +329,14 @@ module.exports = function (RED) {
       let flow = Object.values(flows).find(flow => flow.name === flowName);
       if (!flow) {
         node.status({fill:"red",shape:"ring",text: flowName + " not found"});
-        node.warn('flow [' + flowName + '] not found');  
+        node.warn('advanced flow [' + flowName + '] not found');  
         return;
       }
 
       this.homeyAPI.flow.triggerAdvancedFlow({ id: flow.id }).
       then (data => {
         node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
-        node.debug('flow [' + flowName + '] triggered');
+        node.debug('advanced flow ' + flowName + ' triggered');
       })
       .catch(err => {
         node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
@@ -349,7 +356,7 @@ module.exports = function (RED) {
       this.homeyAPI.flow.triggerFlow({ id: flow.id }).
       then (data => {
         node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
-        node.debug('flow [' + flowName + '] triggered');
+        node.debug('flow ' + flowName + ' triggered');
       })
       .catch(err => {
         node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
@@ -357,14 +364,4 @@ module.exports = function (RED) {
       })
     }
   }
-
-  HomeyConfigNode.prototype.close = async function close(node)
-  {
-    if (this.homeyAPI) {
-      node.debug('closing homeyAPI');
-      this.homeyAPI = null;
-    }
-    if (node) node.status({});
-  }
-
 };
