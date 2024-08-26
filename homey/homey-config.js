@@ -4,18 +4,13 @@ module.exports = function (RED) {
     const {HomeyAPI} = require('homey-api');
     const fetch = require("node-fetch");
 
-    //Create a new AthomCloudAPI instance
-    const cloudAPI = new AthomCloudAPI({
-      clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
-      clientSecret: 'e3ace394af9f615857ceaa61b053f966ddcfb12a',
-      redirectUrl: 'http://localhost'
-    });
-
     function HomeyConfigNode(config) {
       RED.nodes.createNode(this, config);
+      const node = this;
       this.homeyAPI = null;
 
       var homeyConfig = {
+        name: config.name,  
         connection: config.connection,
         // Cloud API
         email: this.credentials.username,
@@ -36,6 +31,162 @@ module.exports = function (RED) {
           this.homeyAPI = null;
         }
       });
+
+      node.checkConnection = async function(node)
+      {
+        if (!this.homeyAPI) {
+          this.homeyAPI = await login(node, this.homeyConfig);
+          return this.homeyAPI ? true : false;
+        }
+    
+        return true;
+      }
+
+      node.getDevice = async function(node, deviceName)
+      {
+        if (! await this.checkConnection(node)) return null;
+    
+        let devices = await this.homeyAPI.devices.getDevices();
+        let device = Object.values(devices).find(device => device.name === deviceName);
+        if (!device) {
+          node.status({fill:"red",shape:"ring",text: deviceName + " not found"});
+          node.warn('device [' + deviceName + '] not found');  
+          return null;
+        }
+    
+        return device
+      }
+
+      node.readDevice = async function(node, deviceName, capabilityName)
+      {
+        let device = await this.getDevice(node, deviceName);
+        if (!device) return null;
+      
+        let capability = device.capabilitiesObj[capabilityName];
+        if (!capability) {
+          node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + " not found"});
+          node.warn('device [' + deviceName + '] capability [' + capabilityName + '] not found');  
+          return null;
+        }
+    
+        let payload = {
+          device: device.name,
+          id: capability.id,
+          title: capability.title,
+          desc: capability.desc,
+          value: capability.value,
+          units: capability.units,
+          lastUpdated: capability.lastUpdated
+        }
+        return payload
+      }
+          
+      node.writeDevice = async function(node, deviceName, capabilityName, value)
+      {
+        let device = await this.getDevice(node, deviceName);
+        if (!device) return;
+      
+        device.setCapabilityValue(capabilityName, value).
+            then(data => {
+              node.status({fill:"green",shape:"ring",text: deviceName + '.' + capabilityName + ' = ' + value});
+              node.debug(deviceName + '.' + capabilityName + ' = ' + value);
+            })
+            .catch(err => {
+              node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + ' not set'});
+              node.warn(err.message);  
+            })
+      }
+    
+    
+      node.writeVariable = async function(node, variableName, value)
+      {
+        if (! await this.checkConnection(node)) return;
+    
+        let variables = await this.homeyAPI.logic.getVariables();
+        let variable = Object.values(variables).find(variable => variable.name === variableName);
+        if (!variable) {
+          node.status({fill:"red",shape:"ring",text: variableName + " not found"});
+          node.warn('variable [' + variableName + '] not found');  
+          return
+        }
+      
+        this.homeyAPI.logic.updateVariable({id: variable.id, variable: { value: value }}).
+            then(data => {
+              node.status({fill:"green",shape:"ring",text: variableName + ' = ' + value});
+              node.debug(variableName + ' = ' + value);
+            })
+            .catch(err => {
+              node.status({fill:"red",shape:"ring",text: variableName + ' not set'});
+              node.warn(err.message);  
+            })
+      }
+    
+      node.readVariable = async function(node, variableName)
+      {
+        if (! await this.checkConnection(node)) return null;
+    
+        let variables = await this.homeyAPI.logic.getVariables();
+        let variable = Object.values(variables).find(variable => variable.name === variableName);
+        if (!variable) {
+          node.status({fill:"red",shape:"ring",text: variableName + " not found"});
+          node.warn('variable [' + variableName + '] not found');  
+          return
+        }
+      
+        let payload = {
+          name: variable.name,
+          type: variable.type,
+          value: variable.value
+        }
+        return payload
+      }
+    
+    
+      node.triggerFlow = async function(node, flowName, advanced)
+      {
+        if (! await this.checkConnection(node)) return;
+    
+        if (advanced) {
+          // trigger advanced flow
+          let flows = await this.homeyAPI.flow.getAdvancedFlows();
+          let flow = Object.values(flows).find(flow => flow.name === flowName);
+          if (!flow) {
+            node.status({fill:"red",shape:"ring",text: flowName + " not found"});
+            node.warn('advanced flow [' + flowName + '] not found');  
+            return;
+          }
+    
+          this.homeyAPI.flow.triggerAdvancedFlow({ id: flow.id }).
+          then (data => {
+            node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
+            node.debug('advanced flow ' + flowName + ' triggered');
+          })
+          .catch(err => {
+            node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
+            node.warn(err.message);  
+          })
+        } 
+        else {
+          // trigger regular flow
+          let flows = await this.homeyAPI.flow.getFlows();
+          let flow = Object.values(flows).find(flow => flow.name === flowName);
+          if (!flow) {
+            node.status({fill:"red",shape:"ring",text: flowName + " not found"});
+            node.warn('flow [' + flowName + '] not found');  
+            return
+          }
+    
+          this.homeyAPI.flow.triggerFlow({ id: flow.id }).
+          then (data => {
+            node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
+            node.debug('flow ' + flowName + ' triggered');
+          })
+          .catch(err => {
+            node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
+            node.warn(err.message);  
+          })
+        }
+      }
     }  
 
     async function getAuthorizationCode(config) {
@@ -121,7 +272,7 @@ module.exports = function (RED) {
     try {
       if (homeyConfig.connection === 'local') {
         // LOCAL API
-        node.debug('Logging in to local Homey ' + homeyConfig.address);
+        node.debug('LOCAL Login in to Homey ' + homeyConfig.name);
         const homeyAPI = await HomeyAPI.createLocalAPI({
           address: homeyConfig.address,
           token: homeyConfig.apiToken
@@ -136,18 +287,27 @@ module.exports = function (RED) {
       }
       else {
         // CLOUD API
+        node.debug('CLOUD Login in to Homey ' + homeyConfig.name);
+
+        //Create a new AthomCloudAPI instance
+        const cloudAPI = new AthomCloudAPI({
+          clientId: '5a8d4ca6eb9f7a2c9d6ccf6d',
+          clientSecret: 'e3ace394af9f615857ceaa61b053f966ddcfb12a',
+          redirectUrl: 'http://localhost'
+        });
+
         if(!await cloudAPI.isLoggedIn()) {
-            //If we are not logged in but do have an OAuth2 authorization code 
-            // parameter in our URL, use it to authenticate
-            if(cloudAPI.hasAuthorizationCode()) {
-                await cloudAPI.authenticateWithAuthorizationCode();
-            } else {
-                //Redirect the user to the (simulated) OAuth2 login page
-                var code = await getAuthorizationCode(homeyConfig);
-                await cloudAPI.authenticateWithAuthorizationCode({code: code});
-            }
+          //If we are not logged in but do have an OAuth2 authorization code 
+          // parameter in our URL, use it to authenticate
+          if(cloudAPI.hasAuthorizationCode()) {
+            await cloudAPI.authenticateWithAuthorizationCode();
+          } else {
+            //Redirect the user to the (simulated) OAuth2 login page
+            var code = await getAuthorizationCode(homeyConfig);
+            await cloudAPI.authenticateWithAuthorizationCode({code: code});
+          }
         }
-  
+
         const user = await cloudAPI.getAuthenticatedUser();
         node.debug('User ' + user.fullname + ' Authenticated');
   
@@ -169,8 +329,7 @@ module.exports = function (RED) {
           return null;
         }
         return homeyAPI;
-      }
-        
+      }       
     } catch (error) {
       node.warn('Error logging in to Homey: ' + error);
       node.status({fill:"red",shape:"ring",text: 'Homey Login failed'});
@@ -188,180 +347,6 @@ module.exports = function (RED) {
     }
   });
 
-  HomeyConfigNode.prototype.getDevice = async function getDevice(node, deviceName)
-  {
-    if (!this.homeyAPI) {
-      this.homeyAPI = await login(node, this.homeyConfig);
-      if (!this.homeyAPI) return null;
-    }
-
-    let devices = await this.homeyAPI.devices.getDevices();
-    let device = Object.values(devices).find(device => device.name === deviceName);
-    if (!device) {
-      node.status({fill:"red",shape:"ring",text: deviceName + " not found"});
-      node.warn('device [' + deviceName + '] not found');  
-      return null;
-    }
-
-    return device
-  }
-
-  HomeyConfigNode.prototype.writeDevice = async function writeDevice(node, deviceName, capabilityName, value)
-  {
-    if (!this.homeyAPI) {
-      this.homeyAPI = await login(node, this.homeyConfig);
-      if (!this.homeyAPI) return;
-    }
-
-    let devices = await this.homeyAPI.devices.getDevices();
-    let device = Object.values(devices).find(device => device.name === deviceName);
-    if (!device) {
-      node.status({fill:"red",shape:"ring",text: deviceName + " not found"});
-      node.warn('device [' + deviceName + '] not found');  
-      return
-    }
-  
-    device.setCapabilityValue(capabilityName, value).
-        then(data => {
-          node.status({fill:"green",shape:"ring",text: deviceName + '.' + capabilityName + ' = ' + value});
-          node.debug(deviceName + '.' + capabilityName + ' = ' + value);
-        })
-        .catch(err => {
-          node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + ' not set'});
-          node.warn(err.message);  
-        })
-  }
-
-  HomeyConfigNode.prototype.readDevice = async function readDevice(node, deviceName, capabilityName)
-  {
-    if (!this.homeyAPI) {
-      this.homeyAPI = await login(node, this.homeyConfig);
-      if (!this.homeyAPI) return null;
-    }
-
-    let devices = await this.homeyAPI.devices.getDevices();
-    let device = Object.values(devices).find(device => device.name === deviceName);
-    if (!device) {
-      node.status({fill:"red",shape:"ring",text: deviceName + " not found"});
-      node.warn('device [' + deviceName + '] not found');  
-      return null;
-    }
-  
-    let capability = device.capabilitiesObj[capabilityName];
-    if (!capability) {
-      node.status({fill:"red",shape:"ring",text: deviceName + '.' + capabilityName + " not found"});
-      node.warn('device [' + deviceName + '] capability [' + capabilityName + '] not found');  
-      return null;
-    }
-
-    let payload = {
-      device: device.name,
-      id: capability.id,
-      title: capability.title,
-      desc: capability.desc,
-      value: capability.value,
-      units: capability.units,
-      lastUpdated: capability.lastUpdated
-    }
-    return payload
-  }
-
-  HomeyConfigNode.prototype.writeVariable = async function writeVariable(node, variableName, value)
-  {
-    if (!this.homeyAPI) {
-      this.homeyAPI = await login(node, this.homeyConfig);
-      if (!this.homeyAPI) return;
-    }
-
-    let variables = await this.homeyAPI.logic.getVariables();
-    let variable = Object.values(variables).find(variable => variable.name === variableName);
-    if (!variable) {
-      node.status({fill:"red",shape:"ring",text: variableName + " not found"});
-      node.warn('variable [' + variableName + '] not found');  
-      return
-    }
-  
-    this.homeyAPI.logic.updateVariable({id: variable.id, variable: { value: value }}).
-        then(data => {
-          node.status({fill:"green",shape:"ring",text: variableName + ' = ' + value});
-          node.debug(variableName + ' = ' + value);
-        })
-        .catch(err => {
-          node.status({fill:"red",shape:"ring",text: variableName + ' not set'});
-          node.warn(err.message);  
-        })
-  }
-
-  HomeyConfigNode.prototype.readVariable = async function readVariable(node, variableName)
-  {
-    if (!this.homeyAPI) {
-      this.homeyAPI = await login(node, this.homeyConfig);
-      if (!this.homeyAPI) return null;
-    }
-
-    let variables = await this.homeyAPI.logic.getVariables();
-    let variable = Object.values(variables).find(variable => variable.name === variableName);
-    if (!variable) {
-      node.status({fill:"red",shape:"ring",text: variableName + " not found"});
-      node.warn('variable [' + variableName + '] not found');  
-      return
-    }
-  
-    let payload = {
-      name: variable.name,
-      type: variable.type,
-      value: variable.value
-    }
-    return payload
-  }
 
 
-  HomeyConfigNode.prototype.triggerFlow = async function triggerFlow(node, flowName, advanced)
-  {
-    if (!this.homeyAPI) {
-      this.homeyAPI = await login(node, this.homeyConfig);
-      if (!this.homeyAPI) return;
-    }
-
-    if (advanced) {
-      // trigger advanced flow
-      let flows = await this.homeyAPI.flow.getAdvancedFlows();
-      let flow = Object.values(flows).find(flow => flow.name === flowName);
-      if (!flow) {
-        node.status({fill:"red",shape:"ring",text: flowName + " not found"});
-        node.warn('advanced flow [' + flowName + '] not found');  
-        return;
-      }
-
-      this.homeyAPI.flow.triggerAdvancedFlow({ id: flow.id }).
-      then (data => {
-        node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
-        node.debug('advanced flow ' + flowName + ' triggered');
-      })
-      .catch(err => {
-        node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
-        node.warn(err.message);  
-      })
-    } 
-    else {
-      // trigger regular flow
-      let flows = await this.homeyAPI.flow.getFlows();
-      let flow = Object.values(flows).find(flow => flow.name === flowName);
-      if (!flow) {
-        node.status({fill:"red",shape:"ring",text: flowName + " not found"});
-        node.warn('flow [' + flowName + '] not found');  
-        return
-      }
-
-      this.homeyAPI.flow.triggerFlow({ id: flow.id }).
-      then (data => {
-        node.status({fill:"green",shape:"ring",text: flowName + ' triggered'});
-        node.debug('flow ' + flowName + ' triggered');
-      })
-      .catch(err => {
-        node.status({fill:"red",shape:"ring",text: flowName + ' not triggered'});
-        node.warn(err.message);  
-      })
-    }
-  }
 };
