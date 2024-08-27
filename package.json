@@ -1,7 +1,7 @@
 {
   "name": "@evervondel/node-red-homey",
   "description": "Node-Red nodes for Homey Smart Home Platform interaction using Homey-api",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "author": "Erwin Vervondel <erwin.vervondel@gmail.com>",
   "repository": {
